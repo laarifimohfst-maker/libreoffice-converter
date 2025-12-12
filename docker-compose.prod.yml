@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+converter:
+build: .
+container_name: libreoffice-converter
+ports:
+- "5000:5000"
+volumes:
+- uploads:/app/uploads
+- downloads:/app/downloads
+environment:
+- HOME=/tmp
+- FLASK_ENV=production
+restart: unless-stopped
+healthcheck:
+test: ["CMD", "curl", "-f", "http://localhost:5000"]
+interval: 30s
+timeout: 10s
+retries: 3
+
+volumes:
+uploads:
+downloads:

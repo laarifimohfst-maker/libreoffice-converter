@@ -1,0 +1,21 @@
+services:
+  libreoffice-converter:
+    build: .
+    container_name: libreoffice-converter
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./downloads:/app/downloads
+      - ./app:/app
+    # FORCER les DNS au niveau du runtime
+    dns:
+      - 1.1.1.1  # Cloudflare
+      - 8.8.8.8  # Google
+    dns_search:
+      - .
+    environment:
+      - FLASK_ENV=development
+    # Commande avec délai pour laisser le réseau s'initialiser
+    command: >
+      bash -c "sleep 3 && python3 app.py"

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertisseur de Fichiers</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 Convertisseur de Fichiers LibreOffice</h1>
+        
+        <div id="message" class="message"></div>
+        
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="file">Sélectionnez un fichier :</label>
+                <input type="file" id="file" name="file" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="format">Format de conversion :</label>
+                <select id="format" name="format">
+                    <option value="pdf">PDF Document</option>
+                    <option value="docx">Microsoft Word</option>
+                    <option value="odt">OpenDocument Text</option>
+                    <option value="txt">Plain Text</option>
+                    <option value="html">HTML Document</option>
+                    <option value="jpg">JPEG Image</option>
+                    <option value="png">PNG Image</option>
+                    <option value="xlsx">Microsoft Excel</option>
+                    <option value="pptx">Microsoft PowerPoint</option>
+                </select>
+            </div>
+            
+            <button type="submit">Convertir</button>
+        </form>
+        
+        <div id="loading" class="loading">
+            ⏳ Conversion en cours...
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('file');
+            const formatSelect = document.getElementById('format');
+            const loading = document.getElementById('loading');
+            const messageDiv = document.getElementById('message');
+            
+            // Réinitialiser les messages
+            messageDiv.className = 'message';
+            messageDiv.textContent = '';
+            
+            // Vérifier si un fichier est sélectionné
+            if (!fileInput.files[0]) {
+                showMessage('Veuillez sélectionner un fichier', 'error');
+                return;
+            }
+            
+            // Afficher le chargement
+            loading.style.display = 'block';
+            
+            // Préparer les données du formulaire
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('format', formatSelect.value);
+            
+            try {
+                // Envoyer la requête
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    // Télécharger le fichier converti
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `converted_${formatSelect.value}.${formatSelect.value}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    
+                    showMessage('Conversion réussie ! Téléchargement en cours...', 'success');
+                } else {
+                    const error = await response.json();
+                    showMessage(`Erreur : ${error.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage('Erreur réseau : ' + error.message, 'error');
+            } finally {
+                // Masquer le chargement
+                loading.style.display = 'none';
+                
+                // Réinitialiser le formulaire
+                fileInput.value = '';
+            }
+        });
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            
+            // Masquer le message après 5 secondes
+            setTimeout(() => {
+                messageDiv.textContent = '';
+                messageDiv.className = 'message';
+            }, 5000);
+        }
+        
+        // Charger les formats disponibles
+        async function loadFormats() {
+            try {
+                const response = await fetch('/formats');
+                const formats = await response.json();
+                
+                const select = document.getElementById('format');
+                select.innerHTML = '';
+                
+                for (const [value, label] of Object.entries(formats)) {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = label;
+                    select.appendChild(option);
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement des formats:', error);
+            }
+        }
+        
+        // Charger les formats au démarrage
+        loadFormats();
+    </script>
+</body>
+</html>
