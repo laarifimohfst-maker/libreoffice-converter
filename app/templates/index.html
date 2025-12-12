@@ -1,147 +1,483 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convertisseur de Fichiers</title>
+    <title>Convertisseur de Fichiers LibreOffice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background: #000;
             padding: 20px;
-            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
         }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
         .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: transparent;
+            padding: 50px 40px;
+            max-width: 600px;
+            width: 100%;
+            animation: fadeIn 0.6s ease-out;
+            position: relative;
+            z-index: 1;
         }
-        h1 {
-            color: #333;
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd, #3b82f6);
+            background-size: 200% 100%;
+            animation: shimmer 3s linear infinite;
+        }
+        
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes bounce {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .header {
             text-align: center;
+            margin-bottom: 40px;
         }
-        .form-group {
+        
+        .icon {
+            font-size: 64px;
             margin-bottom: 20px;
+            animation: bounce 2s ease-in-out infinite;
+            display: inline-block;
         }
+        
+        h1 {
+            color: #fff;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #9ca3af;
+            font-size: 16px;
+            margin-top: 8px;
+        }
+        
+        #message {
+            padding: 16px 20px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .message.success {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            display: block;
+        }
+        
+        .message.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 28px;
+        }
+        
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #fff;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        input, select {
+        
+        .file-input-wrapper {
+            position: relative;
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
         }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 24px;
+            border: 3px dashed #374151;
+            border-radius: 16px;
+            background: #111;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #9ca3af;
+            font-weight: 500;
+            min-height: 120px;
+            gap: 12px;
+        }
+        
+        .file-input-label:hover {
+            border-color: #3b82f6;
+            background: #1a1a1a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+            color: #fff;
+        }
+        
+        .file-input-label.has-file {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+        }
+        
+        .file-icon {
+            font-size: 48px;
+        }
+        
+        .file-name {
+            font-size: 14px;
+            font-weight: 600;
+            word-break: break-all;
+            text-align: center;
+            max-width: 100%;
+        }
+        
+        .file-preview {
+            display: none;
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            object-fit: contain;
+        }
+        
+        .file-preview.show {
+            display: block;
+        }
+        
+        .file-input-label.has-file .file-icon,
+        .file-input-label.has-file .file-text {
+            display: none;
+        }
+        
+        select {
+            width: 100%;
+            padding: 16px 48px 16px 20px;
+            border: 2px solid #374151;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            background: #111 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 16px center;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            appearance: none;
+        }
+        
+        select:hover,
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            background-color: #1a1a1a;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%233b82f6' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        }
+        
+        select:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
         button {
-            background: #007bff;
+            background: #3b82f6;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 5px;
+            padding: 14px 32px;
+            border-radius: 8px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
             width: 100%;
+            transition: all 0.3s ease;
+            text-transform: none;
+            letter-spacing: 0;
         }
+        
         button:hover {
-            background: #0056b3;
+            background: #60a5fa;
         }
+        
+        button:active {
+            background: #2563eb;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         .loading {
             display: none;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 30px;
+            padding: 20px;
         }
-        .message {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            text-align: center;
+        
+        .loading.active {
+            display: block;
         }
-        .success {
-            background: #d4edda;
-            color: #155724;
+        
+        .spinner {
+            border: 4px solid #1f1f1f;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
         }
-        .error {
-            background: #f8d7da;
-            color: #721c24;
+        
+        .loading-text {
+            color: #9ca3af;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        @media (max-width: 640px) {
+            .container {
+                padding: 30px 24px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .icon {
+                font-size: 48px;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>📄 Convertisseur de Fichiers LibreOffice</h1>
-        
+        <div class="header">
+            <div class="icon">📄</div>
+            <h1>Convertisseur de Fichiers</h1>
+            <p class="subtitle">LibreOffice Converter</p>
+        </div>
+
         <div id="message" class="message"></div>
-        
+
         <form id="uploadForm">
             <div class="form-group">
-                <label for="file">Sélectionnez un fichier :</label>
-                <input type="file" id="file" name="file" required>
+                <label for="file">Sélectionnez un fichier</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="file" name="file" required>
+                    <label for="file" class="file-input-label" id="fileLabel">
+                        <img id="filePreview" class="file-preview" alt="Aperçu">
+                        <span class="file-icon">📎</span>
+                        <span class="file-text">Glissez-déposez un fichier ou cliquez pour sélectionner</span>
+                        <span class="file-name" id="fileName"></span>
+                    </label>
+                </div>
             </div>
-            
+
             <div class="form-group">
-                <label for="format">Format de conversion :</label>
+                <label for="format">Format de conversion</label>
                 <select id="format" name="format">
-                    <option value="pdf">PDF Document</option>
-                    <option value="docx">Microsoft Word</option>
-                    <option value="odt">OpenDocument Text</option>
-                    <option value="txt">Plain Text</option>
-                    <option value="html">HTML Document</option>
-                    <option value="jpg">JPEG Image</option>
-                    <option value="png">PNG Image</option>
-                    <option value="xlsx">Microsoft Excel</option>
-                    <option value="pptx">Microsoft PowerPoint</option>
+                    <option value="pdf">📄 PDF Document</option>
+                    <option value="docx">📝 Microsoft Word</option>
+                    <option value="odt">📋 OpenDocument Text</option>
+                    <option value="txt">📃 Plain Text</option>
+                    <option value="html">🌐 HTML Document</option>
+                    <option value="jpg">🖼️ JPEG Image</option>
+                    <option value="png">🖼️ PNG Image</option>
+                    <option value="xlsx">📊 Microsoft Excel</option>
+                    <option value="pptx">📽️ Microsoft PowerPoint</option>
                 </select>
             </div>
-            
-            <button type="submit">Convertir</button>
+
+            <button type="submit" id="submitBtn">Convertir</button>
         </form>
-        
+
         <div id="loading" class="loading">
-            ⏳ Conversion en cours...
+            <div class="spinner"></div>
+            <div class="loading-text">⏳ Conversion en cours...</div>
         </div>
     </div>
 
     <script>
+        const fileInput = document.getElementById('file');
+        const fileLabel = document.getElementById('fileLabel');
+        const fileName = document.getElementById('fileName');
+        const fileText = fileLabel.querySelector('.file-text');
+        const submitBtn = document.getElementById('submitBtn');
+
+        const filePreview = document.getElementById('filePreview');
+
+        function showPreview(file) {
+            const reader = new FileReader();
+            const fileType = file.type;
+
+            if (fileType.startsWith('image/')) {
+                reader.onload = function(e) {
+                    filePreview.src = e.target.result;
+                    filePreview.classList.add('show');
+                };
+                reader.readAsDataURL(file);
+            } else if (fileType === 'application/pdf') {
+                // Pour PDF, on peut utiliser un canvas pour afficher la première page
+                filePreview.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNmODJmNiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiPlBEPC90ZXh0Pjwvc3ZnPg==';
+                filePreview.classList.add('show');
+            } else {
+                // Pour les autres types, on affiche une icône selon l'extension
+                const ext = file.name.split('.').pop().toLowerCase();
+                const iconMap = {
+                    'doc': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNmODJmNiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiPkRPQzwvdGV4dD48L3N2Zz4=',
+                    'docx': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNmODJmNiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiPkRPQzwvdGV4dD48L3N2Zz4=',
+                    'xlsx': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNmODJmNiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiPkVYQ0VMPC90ZXh0Pjwvc3ZnPg==',
+                    'pptx': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNmODJmNiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiPlBQVDwvdGV4dD48L3N2Zz4=',
+                    'txt': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNmODJmNiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiPlRFWFQ8L3RleHQ+PC9zdmc+'
+                };
+                filePreview.src = iconMap[ext] || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNmODJmNiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiPkZJTEU8L3RleHQ+PC9zdmc+';
+                filePreview.classList.add('show');
+            }
+        }
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                fileName.textContent = file.name;
+                fileText.style.display = 'none';
+                fileLabel.classList.add('has-file');
+                showPreview(file);
+            } else {
+                fileName.textContent = '';
+                fileText.style.display = 'block';
+                fileLabel.classList.remove('has-file');
+                filePreview.classList.remove('show');
+            }
+        });
+
+        fileLabel.addEventListener('dragover', e => {
+            e.preventDefault();
+            fileLabel.style.borderColor = '#3b82f6';
+            fileLabel.style.transform = 'scale(1.02)';
+        });
+        fileLabel.addEventListener('dragleave', e => {
+            e.preventDefault();
+            if (!fileInput.files[0]) {
+                fileLabel.style.borderColor = '#374151';
+                fileLabel.style.transform = 'scale(1)';
+            }
+        });
+        fileLabel.addEventListener('drop', e => {
+            e.preventDefault();
+            fileLabel.style.borderColor = '#374151';
+            fileLabel.style.transform = 'scale(1)';
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
+        });
+
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            const fileInput = document.getElementById('file');
             const formatSelect = document.getElementById('format');
             const loading = document.getElementById('loading');
             const messageDiv = document.getElementById('message');
-            
-            // Réinitialiser les messages
+
             messageDiv.className = 'message';
+            messageDiv.style.display = 'none';
             messageDiv.textContent = '';
-            
-            // Vérifier si un fichier est sélectionné
+
             if (!fileInput.files[0]) {
                 showMessage('Veuillez sélectionner un fichier', 'error');
                 return;
             }
-            
-            // Afficher le chargement
-            loading.style.display = 'block';
-            
-            // Préparer les données du formulaire
+
+            submitBtn.disabled = true;
+            loading.classList.add('active');
+
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
             formData.append('format', formatSelect.value);
-            
+
             try {
-                // Envoyer la requête
                 const response = await fetch('/upload', {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 if (response.ok) {
-                    // Télécharger le fichier converti
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -150,57 +486,39 @@
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
-                    
-                    showMessage('Conversion réussie ! Téléchargement en cours...', 'success');
+                    document.body.removeChild(a);
+                    showMessage('✨ Conversion réussie ! Téléchargement en cours...', 'success');
                 } else {
                     const error = await response.json();
-                    showMessage(`Erreur : ${error.error}`, 'error');
+                    showMessage(`❌ Erreur : ${error.error}`, 'error');
                 }
             } catch (error) {
-                showMessage('Erreur réseau : ' + error.message, 'error');
+                showMessage(`❌ Erreur réseau : ${error.message}`, 'error');
             } finally {
-                // Masquer le chargement
-                loading.style.display = 'none';
-                
-                // Réinitialiser le formulaire
-                fileInput.value = '';
+                loading.classList.remove('active');
+                submitBtn.disabled = false;
+                setTimeout(() => {
+                    fileInput.value = '';
+                    fileName.textContent = '';
+                    fileText.style.display = 'block';
+                    fileLabel.classList.remove('has-file');
+                    filePreview.classList.remove('show');
+                }, 2000);
             }
         });
-        
+
         function showMessage(text, type) {
             const messageDiv = document.getElementById('message');
             messageDiv.textContent = text;
             messageDiv.className = `message ${type}`;
-            
-            // Masquer le message après 5 secondes
+            messageDiv.style.display = 'block';
             setTimeout(() => {
+                messageDiv.style.display = 'none';
                 messageDiv.textContent = '';
                 messageDiv.className = 'message';
             }, 5000);
         }
-        
-        // Charger les formats disponibles
-        async function loadFormats() {
-            try {
-                const response = await fetch('/formats');
-                const formats = await response.json();
-                
-                const select = document.getElementById('format');
-                select.innerHTML = '';
-                
-                for (const [value, label] of Object.entries(formats)) {
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = label;
-                    select.appendChild(option);
-                }
-            } catch (error) {
-                console.error('Erreur lors du chargement des formats:', error);
-            }
-        }
-        
-        // Charger les formats au démarrage
-        loadFormats();
     </script>
 </body>
+
 </html>
